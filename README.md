@@ -1,84 +1,46 @@
-# License-plate-recognition
-使用 "Darknet yolov3-tiny" 训练检测模型
+# darknet
+darknet是一个较为轻型的完全基于C与CUDA的开源深度学习框架，其主要特点就是容易安装，没有任何依赖项（OpenCV都可以不用），移植性非常好，支持CPU与GPU两种计算方式。
 
-*1*. 下载[data.zip](https://pan.baidu.com/s/1_Wgy_3mBgNREXXn7HRfAHw),提取码: j7c2.
+更多信息（包括安装、使用）可以参考：[Darknet: Open Source Neural Networks in C](https://pjreddie.com/darknet/)
 
-*2*. 将data.zip解压到darknet.exe所在目录下.
+# 为什么选择darknet？
 
-*3*. 进入data/voc目录下运行voc_label.bat重新生成2019_train.txt, 2019_val.txt.
+相比于TensorFlow来说，darknet并没有那么强大，但这也成了darknet的优势：
 
-*4*. 修改cfg/yolov3-tiny.cfg
+1. darknet完全由C语言实现，没有任何依赖项，当然可以使用OpenCV，但只是用其来显示图片、为了更好的可视化；
 
-    [net]
-    
-    batch=64
-    
-    subdivisions=4    // 这里根据自己内存大小修改(我11G显存设置2时,中途会out of memory. 所以设置4, 训练时显存占用约6G)
-    
-    angle=5           // 增加旋转角度产生样本
-    
-    max_batches = 220000        //最大迭代次数
-    
-    steps=70000,200000         //调整学习率变化点
-  
-    ...
-    
-    filters=225                 //[yolo]前一个filters=(classes类别数+ coords坐标数 +1) * mask个数
-    
-    [yolo]
-    
-    anchors = 12,27,  17,45,  23,61,  37,58,  198,140,  344,319
-    
-    classes=70
-    
-    ignore_thresh = .7
-    
-    ...
-   其他参数说明可参考: [https://blog.csdn.net/weixin_42731241/article/details/81474920](https://blog.csdn.net/weixin_42731241/article/details/81474920)
-    
-*5*. 执行 
+2. darknet支持CPU（所以没有GPU也不用紧的）与GPU（CUDA/cuDNN，使用GPU当然更块更好了）；
 
-    darknet.exe detector train data/voc.data cfg/yolov3-tiny.cfg
-   
-*6*. 训练过程(以其中一次过程为例)
+3. 正是因为其较为轻型，没有像TensorFlow那般强大的API，所以给我的感觉就是有另一种味道的灵活性，适合用来研究底层，可以更为方便的从底层对其进行改进与扩展；
 
-    训练过程也一直在调参数. 所以中断了几次.主要调节anchors 和 ignore_thresh
-    
-    A. iter_0-34900 
-    
-          第一个 anchors=12,27,  15,34,  17,45,  23,61,  30,84,  198,140
-          
-          第二个 anchors=10,14,  23,27,  37,58,  81,82,  135,169,  344,319
-          
-          ignore_thresh=.8
-          
-    B. iter_34900-42700
-    
-          两个 anchors=10,14,  23,27,  37,58,  81,82,  135,169,  344,319
-          
-    C. iter_42700-65000
-    
-          ignore_thresh=.7
-          
-    D. iter_65000-74700
-    
-          ignore_thresh=0.05
-          
-    E. iter_74700-
-    
-          ignore_thresh=.7
-          
-    F. 最终因为loss趋于平缓, 选择了结束训练. 当然还可以再降低learning_rate继续训练, 我这里没继续了.
-    
-![loss](https://github.com/Feeyao/License-plate-recognition/blob/master/image/chart-iter_34900_42700_65000_74700_149000.png)
-    
-*7*. 测试了Test目录下的73张图片, 最终识别对了70张, 识别率约95.89%.[weights](https://pan.baidu.com/s/16sP0QZ9UmrB2A6v8TI_v4Q), 提取码:rlh7
+4. darknet的实现与caffe的实现存在相似的地方，熟悉了darknet，相信对上手caffe有帮助；
 
-![test](https://github.com/Feeyao/License-plate-recognition/blob/master/image/20190404092136.jpg)
+# 本项目目的与状态
 
-**[总结]**
-1. 此方法对输入图片存在一定要求, 车牌区域在图片上较小时, 字符可能检测不出或漏检. 所以测试时为输入改为608是提升字符检出率,不过识别时间约增加一倍. *更好的解决方法是不改变输入尺寸, 将车牌区域检测和字符检测分开两个模型, 先检测车牌区域, 将车牌区域(范围可稍微扩张一些)再进行字符检测*.
-   
-2. 训练数据里面倾斜样本和模糊样本少了一些, 对角度大且车牌区域小的图片字符检测效果不太好.
-![image1](https://github.com/Feeyao/License-plate-recognition/blob/master/image/20190404083445.jpg)![image2](https://github.com/Feeyao/License-plate-recognition/blob/master/image/20190404083520.jpg)![image3](https://github.com/Feeyao/License-plate-recognition/blob/master/image/20190404083550.jpg)
-3. 想起来再写.
+目的很简单，研究darknet底层，窥探深度学习框架原理与具体实现，同时巩固C语言编程（所以注释中不单有很多的框架原理/逻辑分析，也有很多语法分析）。目前只完成部分代码（主要是卷积神经网络）的分析，其注释非常详细（可能很多人会觉得罗嗦了：)，那就强忍着吧～），未来会不定期的更新!（忙ing，什么时候会再更呢？）
+
+很希望有相同兴趣的人加入我，一起研究（若有兴趣，欢迎给我发邮件～～）！
+
+# 小小声明
+
+注释中有些地方提及了参考什么什么的，这些多半是指我所作的图表+文字用来帮助理解代码的笔记，原谅我这些笔记还躺在我的电脑里，并没有上传，但不用紧，因为注释真的真的很详细，基本上不用图表也说明清楚了～～
+
+大部分的代码都是本人个人完成的（lonely...），所以难免会有理解错误的地方（可能还不少，害怕ing...），还请多多包涵，若发现与您理解相左的地方，欢迎发邮件给我～～
+
+# 两三点小说明
+
+1. src文件夹中凡是.cu文件，都被我改为.c结尾了（为了一点点方便～），替换之前的文件全被我放在了src/cu文件夹中（没啥用，可以随便删掉～）。如果你没用gpu的话，这没有任何影响，因为没有用gpu就不会用到nvcc编译；但是如果你用gpu的话，还得麻烦你将.c改回.cu，不然编译会出问题的（你可以看一下Makefile文件，.cu文件要用nvcc编译的，要改为.c那就通通用gcc编译了～～）
+
+2. 如果你也愿意解析代码，为其写注释，也可以pull requests给我，我来merge（注释风格如果能够保持一致就最好了～～）
+
+3. Contributors:
+    * [Goffic](https://github.com/Goffic)： 为rnn_layer.c添加了注释
+    * [LamHoCN](https://github.com/LamHoCN)： 修改了一些注释，并提供了一些yolo的应用代码（已push到extension分支中）
+
+# 疑惑求解
+
+1. 始终不明白softmax_layer层反向传播函数backward_softmax_layer()中为什么不用对softmax函数求导？
+
+2. region_layer层前向函数forward_region_layer()在求l.output过程中（也就是第一次使用activate_array函数），为什么只对x,y进行了logistic激活函数处理，而没有对w,h处理（也就是activate_array()函数的第二个参数为什么是2*l.w*l.h，而不是4*l.w*l.h）？还有，region_layer这一层没有训练参数吗？
+
+3. 另外，就是region_layer中cost和delta的计算了，感觉并没有弄懂？
